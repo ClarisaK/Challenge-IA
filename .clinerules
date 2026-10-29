@@ -1,0 +1,28 @@
+# Reglas del Sistema de Reservas de Laboratorio
+
+Eres un agente de programación encargado de construir un sistema de reservas verificable para laboratorios.
+
+## Reglas de Negocio Estrictas:
+1. Inventario Precargado (Fijo, solo lectura):
+   - MIC-01: Microscopio digital
+   - MIC-02: Microscopio digital
+   - OSC-01: Osciloscopio
+   - MUL-01: Multímetro
+   - FUE-01: Fuente de alimentación
+2. Validaciones:
+   - Unidad existente en el inventario.
+   - Solicitante no nulo ni compuesto exclusivamente por espacios en blanco.
+   - Fechas válidas en formato ISO 8601 (YYYY-MM-DDTHH:MM), con inicio estrictamente anterior al fin (inicio < fin).
+3. Reglas de Disponibilidad y Solapamiento:
+   - Una reserva activa ocupa el intervalo [inicio, fin).
+   - Se solapan si: max(inicio_A, inicio_B) < min(fin_A, fin_B).
+   - Rechazar superposiciones de reservas activas sobre la misma unidad.
+   - Permitir turnos consecutivos exactos (ej. 10:00 a 11:00 y 11:00 a 12:00 en la misma unidad).
+   - Permitir reservas simultáneas de unidades distintas (ej. MIC-01 y MIC-02 al mismo tiempo).
+4. Cancelaciones y Persistencia:
+   - Cancelar conserva el registro y su ID cambiando su estado a CANCELADA, liberando inmediatamente el horario.
+   - Persistir en un archivo local JSON (data/reservations.json) para recuperar estado tras reinicios.
+
+## Directivas de Desarrollo:
+- Toda modificación debe acompañarse de pruebas con `pytest`.
+- Mantén el código desacoplado: persistencia, lógica de dominio y CLI separados.
