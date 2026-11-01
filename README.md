@@ -35,7 +35,7 @@ El sistema administra recursos físicos compartidos con disponibilidad limitada 
 * **Framework de Pruebas:** `pytest` (36 casos de prueba unitarios e integrados al 100% de éxito)
 * **Persistencia:** Archivos JSON estructurados (`data/inventory.json` y `data/reservations.json`)
 * **Entorno de Delegación:** VS Code + Cline Extension
-* **Modelos LLM:** Google Gemini API / Groq Llama 3
+* **Modelos LLM:** Google Gemini API 
 
 ### Estructura del Repositorio
 
