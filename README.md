@@ -70,6 +70,53 @@ La interacción con el agente se rigió por un esquema de delegación acotada co
 * **Tolerancia a Fallos de Cuota (Fallback):** Durante el desarrollo se identificaron agotamientos de cuota en el proveedor base de API; se gestionaron mediante directivas desacopladas y correcciones manuales directas en los puntos de mock.
 * **Criterios de Aceptación:** Ningún archivo fue incorporado al historial de Git sin antes ejecutar `pytest -v` y verificar el 100% de éxito en los casos de prueba.
 
+### 3.1. Entorno, Versión e Identificador del Modelo
+* **Entorno de ejecución del agente:** Extensión Cline (v3.x) integrada en Visual Studio Code sobre sistema operativo Windows 10/11 x64.
+* **Proveedor de API / Plataforma:** Google AI Studio (Gemini API) a través de claves de autenticación en entorno seguro.
+* **Identificador exacto del modelo:** `gemini-2.5-flash` / `gemini-2.0-flash` (identificado en la interfaz de Cline como familia `gemini-flash`).
+* **Función asignada:** Desarrollador principal autónomo subordinado a supervisión humana, responsable de la generación de código modular, refactorizaciones y creación de pruebas automatizadas en `pytest`.
+* **Motivo de la elección:** Ventana de contexto amplia (1.0M tokens), baja latencia de respuesta para edición de código en bucle y soporte nativo para invocación de herramientas CLI.
+* **Transparencia de datos no visibles:** La temperatura exacta del modelo y los hiperparámetros de muestreo internos son gestionados internamente por la extensión Cline bajo la configuración predeterminada del backend, sin exposición explícita en la interfaz gráfica.
+
+### 3.2. Instrucciones y Configuraciones Utilizadas (Saneadas) y Gestión de Contexto
+* **Archivo de Gobernanza (`.clinerules`):**
+  Se estableció una directiva restrictiva en la raíz del repositorio con el siguiente contenido saneado:
+  ```text
+  Actúa como desarrollador principal. Trabaja únicamente dentro del directorio actual del proyecto (.).
+  Respeta estrictamente las reglas de negocio: inventario fijo de 5 unidades, validación temporal ISO 8601,
+  solapamiento estricto max(inicio_A, inicio_B) < min(fin_A, fin_B) y soporte para turnos contiguos.
+  No ejecutes comandos destructivos ni modifiques archivos fuera del workspace.
+  ```
+* **Contexto Suministrado:**
+  - Estructura base del proyecto (`src/`, `data/`, `tests/`).
+  - Especificación formal del catálogo de 5 recursos (`MIC-01`, `MIC-02`, `OSC-01`, `MUL-01`, `FUE-01`).
+  - Restricción estricta de validación temporal y cálculo matemático de colisiones.
+* **Contexto Excluido Deliberadamente:**
+  - Credenciales y claves de API (gestionadas fuera del código y nunca rastreadas por Git).
+  - Entorno virtual (`.venv/`) y cachés compiladas de Python (`__pycache__/`, `*.pyc`), excluidos vía `.gitignore` para prevenir polución de contexto y consumo innecesario de tokens.
+
+### 3.3. Herramientas, Acciones Permitidas y Protocolo de Aprobación Humana
+* **Herramientas Habilitadas al Agente:**
+  1. `Read File`: Inspección de archivos de configuración y código existente.
+  2. `Write / Edit File`: Propuesta de modificaciones mediante diffs interactivos.
+  3. `Execute Command`: Ejecución supervisada de comandos de terminal en PowerShell (ejecución de pruebas `pytest` y lectura controlada del árbol de directorios).
+* **Protocolo de Control y Aprobaciones Humanas:**
+  - **Revisión previa de diffs:** Cada cambio de código fue revisado línea por línea en el panel de diferencias de VS Code antes de autorizar su escritura.
+  - **Aprobación comando a comando:** Ningún comando de terminal se ejecutó con auto-aprobación indiscriminada; cada invocación requirió presionar manualmente `Run Command`.
+  - **Cancelación preventiva de bucles:** Ante comandos de lectura excesiva o recursiva sobre dependencias del entorno (`Get-ChildItem -Recurse`), se intervino cancelando la tarea (`Cancel`/`Reject`) para evitar el agotamiento de contexto y consumo de cuota.
+
+### 3.4. Adaptaciones Específicas Comprobables
+* **Caso 1: Soporte Estricto de Turnos Consecutivos Contiguos**
+  - **Regla de Negocio:** Permitir que una reserva finalice a las `11:00` y otra comience exactamente a las `11:00` sobre la misma unidad sin generar colisión.
+  - **Implementación Matemática:** Se exigió y auditó el uso de la desigualdad estricta `<` en lugar de `<=`:
+    $$\max(A_{inicio}, B_{inicio}) < \min(A_{fin}, B_{fin})$$
+  - **Evidencia Comprobable en Código:** Función `test_consecutive_reservations_allowed` en `tests/test_reservations.py`, validada al 100% en el commit `12ea5e2`.
+* **Caso 2: Aislamiento de Persistencia durante Pruebas**
+  - **Procedimiento:** En lugar de modificar el archivo real `data/reservations.json` durante la batería de tests, se instruyó el uso de la fixture nativa `tmp_path` de `pytest`.
+  - **Evidencia Comprobable:** Definición de `temp_service` en `tests/test_reservations.py` (`storage = tmp_path / "reservations.json"`), garantizando idempotencia y cero efectos secundarios en el repositorio versionado.
+
+---
+
 ---
 
 ## 4. Evidencia de Delegación y Supervisión (Tres Episodios)
