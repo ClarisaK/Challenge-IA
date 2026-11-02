@@ -13,17 +13,28 @@ class LabReservationCLI:
         self,
         service: Optional[ReservationService] = None,
         inventory: Optional[Inventory] = None,
-        input_fn: Callable[[str], str] = input,
-        print_fn: Callable[..., None] = print,
+        input_fn: Optional[Callable[[str], str]] = None,
+        print_fn: Optional[Callable[..., None]] = None,
     ) -> None:
-        self.input_fn = input_fn
-        self.print_fn = print_fn
+        self._custom_input = input_fn
+        self._custom_print = print_fn
         self.inventory = inventory if inventory is not None else Inventory()
         self.service = (
             service
             if service is not None
             else ReservationService(inventory=self.inventory, storage_path=DEFAULT_RESERVATIONS_PATH)
         )
+
+    def input_fn(self, prompt: str = "") -> str:
+        if self._custom_input is not None:
+            return self._custom_input(prompt)
+        return input(prompt)
+
+    def print_fn(self, *args, **kwargs) -> None:
+        if self._custom_print is not None:
+            self._custom_print(*args, **kwargs)
+        else:
+            print(*args, **kwargs)
 
     def print_menu(self) -> None:
         self.print_fn("\n" + "=" * 45)
