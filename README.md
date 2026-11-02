@@ -81,7 +81,7 @@ La interacción con el agente se rigió por un esquema de delegación acotada co
 ### 3.2. Instrucciones y Configuraciones Utilizadas (Saneadas) y Gestión de Contexto
 * **Archivo de Gobernanza (`.clinerules`):**
   Se estableció una directiva restrictiva en la raíz del repositorio con el siguiente contenido saneado:
-  ```text
+``` text
  # Reglas del Sistema de Reservas de Laboratorio
 
 Eres un agente de programación encargado de construir un sistema de reservas verificable para laboratorios.
@@ -110,7 +110,7 @@ Eres un agente de programación encargado de construir un sistema de reservas ve
 ## Directivas de Desarrollo:
 - Toda modificación debe acompañarse de pruebas con `pytest`.
 - Mantén el código desacoplado: persistencia, lógica de dominio y CLI separados.
-  ```
+ ```
 * **Contexto Suministrado:**
   - Estructura base del proyecto (`src/`, `data/`, `tests/`).
   - Especificación formal del catálogo de 5 recursos (`MIC-01`, `MIC-02`, `OSC-01`, `MUL-01`, `FUE-01`).
